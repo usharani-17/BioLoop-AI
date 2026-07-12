@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BioLoop AI — Waste to Wealth Prediction System</title>
+
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
+<link rel="stylesheet" href="https://unpkg.com/aos@2.3.1/dist/aos.css">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+<style>
+:root{
+  --void:#0a0f0d;
+  --panel:#0f1a16;
+  --glass: rgba(20, 34, 28, 0.55);
+  --glass-border: rgba(122, 235, 184, 0.16);
+  --emerald:#29d98c;
+  --emerald-dim:#1c9c66;
+  --cyan:#2fd4c8;
+  --amber:#f2b84b;
+  --mist:#afc2bc;
+  --mist-dim:#6f8880;
+  --font-display:'Sora', sans-serif;
+  --font-body:'Space Grotesk', sans-serif;
+  --font-mono:'JetBrains Mono', monospace;
+  --radius:20px;
+}
+*{ box-sizing:border-box; }
+html{ scroll-behavior:smooth; }
+body{
+  background:
+    radial-gradient(ellipse 900px 500px at 10% -10%, rgba(41,217,140,0.14), transparent 60%),
+    radial-gradient(ellipse 700px 500px at 90% 10%, rgba(47,212,200,0.11), transparent 55%),
+    var(--void);
+  color:#e8f2ee;
+  font-family:var(--font-body);
+  min-height:100vh;
+  overflow-x:hidden;
+  display:flex; flex-direction:column;
+}
+::selection{ background:var(--emerald); color:#04140d; }
+h1,h2,h3,h4,h5{ font-family:var(--font-display); letter-spacing:-0.01em; }
+.mono{ font-family:var(--font-mono); }
+
+/* ambient */
+.blob{ position:fixed; border-radius:50%; filter:blur(100px); z-index:0; pointer-events:none; opacity:.32; }
+.blob-1{ width:480px; height:480px; background:var(--emerald); top:-160px; left:-140px; animation:float1 14s ease-in-out infinite; }
+.blob-2{ width:400px; height:400px; background:var(--cyan); bottom:-160px; right:-120px; animation:float2 16s ease-in-out infinite; }
+.blob-3{ width:240px; height:240px; background:var(--amber); top:55%; left:70%; opacity:.12; animation:float1 20s ease-in-out infinite reverse; }
+@keyframes float1{ 0%,100%{ transform:translate(0,0);} 50%{ transform:translate(40px,50px);} }
+@keyframes float2{ 0%,100%{ transform:translate(0,0);} 50%{ transform:translate(-40px,-40px);} }
+#particles{ position:fixed; inset:0; z-index:0; pointer-events:none; }
+#particles span{
+  position:absolute; width:3px; height:3px; border-radius:50%; background:var(--emerald); opacity:.5;
+  animation:drift linear infinite;
+}
+@keyframes drift{ 0%{ transform:translateY(0) translateX(0); opacity:0; } 10%{opacity:.6;} 90%{opacity:.4;} 100%{ transform:translateY(-110vh) translateX(20px); opacity:0; } }
+
+.wrap{ position:relative; z-index:1; max-width:1180px; margin:0 auto; padding:0 20px; width:100%; }
+
+/* topbar */
+.topbar{ padding:20px 0; }
+.brand{ font-family:var(--font-display); font-weight:800; font-size:1.2rem; display:flex; align-items:center; gap:10px; }
+.brand .logo-ring{ width:36px; height:36px; border-radius:10px; display:flex; align-items:center; justify-content:center; background:radial-gradient(circle at 30% 30%, var(--emerald), var(--emerald-dim)); color:#03140c; font-size:1.05rem; box-shadow:0 0 22px rgba(41,217,140,.45); }
+.brand .dot{ color:var(--emerald); }
+.nav-link-ghost{ color:var(--mist); text-decoration:none; font-size:.88rem; display:flex; align-items:center; gap:6px; transition:.25s; }
+.nav-link-ghost:hover{ color:var(--emerald); }
+
+/* main */
+main{ flex:1; display:flex; align-items:center; padding:20px 0 60px; }
+.hero-copy{ padding-right:20px; }
+.eyebrow{ font-family:var(--font-mono); font-size:.72rem; letter-spacing:.22em; text-transform:uppercase; color:var(--emerald); display:flex; align-items:center; gap:.5rem; margin-bottom:14px; }
+.eyebrow::before{ content:''; width:22px; height:1px; background:var(--emerald); display:inline-block; }
+.hero-copy h1{ font-size:clamp(2.1rem, 4vw, 2.9rem); font-weight:800; line-height:1.12; margin-bottom:16px; }
+.hero-copy h1 .grad{ background:linear-gradient(100deg,#eafff5 10%, var(--emerald) 50%, var(--cyan) 85%); -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent; }
+.hero-copy p.lead-sub{ color:var(--mist); font-size:1.02rem; max-width:460px; margin-bottom:26px; }
+
+.stat-row{ display:flex; gap:26px; margin-top:8px; flex-wrap:wrap; }
+.stat-row .stat{ }
+.stat-row .stat .num{ font-family:var(--font-display); font-weight:800; font-size:1.5rem; color:var(--emerald); }
+.stat-row .stat .lbl{ font-family:var(--font-mono); font-size:.68rem; letter-spacing:.08em; text-transform:uppercase; color:var(--mist); }
+
+.chip-row{ display:flex; gap:10px; flex-wrap:wrap; margin-top:26px; }
+.mini-chip{ font-family:var(--font-mono); font-size:.72rem; padding:7px 13px; border-radius:20px; background:var(--glass); border:1px solid var(--glass-border); color:#dff5ec; display:inline-flex; align-items:center; gap:6px; }
+.mini-chip i{ color:var(--emerald); }
+
+/* form card */
+.form-card{
+  background:var(--glass); border:1px solid var(--glass-border); border-radius:var(--radius);
+  backdrop-filter:blur(16px); -webkit-backdrop-filter:blur(16px);
+  padding:34px 32px; position:relative; overflow:hidden;
+  box-shadow:0 30px 80px rgba(0,0,0,.35);
+}
+.form-card::before{
+  content:''; position:absolute; inset:0; padding:1px; border-radius:var(--radius);
+  background:linear-gradient(135deg, rgba(41,217,140,.55), transparent 45%, rgba(47,212,200,.4));
+  -webkit-mask:linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite:xor; mask-composite:exclude; pointer-events:none;
+}
+.form-card .form-head{ display:flex; align-items:center; gap:14px; margin-bottom:26px; }
+.form-card .form-head .ic{
+  width:50px; height:50px; border-radius:14px; display:flex; align-items:center; justify-content:center;
+  background:radial-gradient(circle at 30% 30%, var(--emerald), var(--emerald-dim)); color:#03140c; font-size:1.3rem;
+  box-shadow:0 0 26px rgba(41,217,140,.4); animation:pulseGlow 2.6s ease-in-out infinite;
+}
+@keyframes pulseGlow{ 0%,100%{ box-shadow:0 0 20px rgba(41,217,140,.35);} 50%{ box-shadow:0 0 36px rgba(41,217,140,.7);} }
+.form-card .form-head h5{ font-size:1.05rem; margin:0; }
+.form-card .form-head .sub{ font-size:.78rem; color:var(--mist); font-family:var(--font-mono); }
+
+.field-label{ font-family:var(--font-mono); font-size:.72rem; letter-spacing:.08em; text-transform:uppercase; color:var(--mist); margin-bottom:8px; display:flex; align-items:center; gap:6px; }
+.field-label i{ color:var(--emerald); }
+
+.form-select, .form-control{
+  background:rgba(255,255,255,0.04); border:1px solid var(--glass-border); color:#eafff5;
+  border-radius:12px; padding:12px 14px; font-family:var(--font-body); font-size:.95rem;
+  transition:border-color .25s ease, box-shadow .25s ease, background .25s ease;
+}
+.form-select:focus, .form-control:focus{
+  background:rgba(255,255,255,0.06); border-color:var(--emerald); box-shadow:0 0 0 4px rgba(41,217,140,.15); color:#fff;
+}
+.form-select option{ background:#0f1a16; color:#eafff5; }
+.form-control::placeholder{ color:var(--mist-dim); }
+.mb-field{ margin-bottom:20px; }
+
+.btn-predict{
+  width:100%; border:none; border-radius:14px; padding:15px; font-family:var(--font-display); font-weight:700;
+  font-size:1rem; letter-spacing:.02em; color:#03140c; position:relative; overflow:hidden;
+  background:linear-gradient(90deg, var(--emerald), var(--cyan));
+  box-shadow:0 10px 30px rgba(41,217,140,.3);
+  transition:transform .25s ease, box-shadow .25s ease;
+  display:flex; align-items:center; justify-content:center; gap:10px;
+}
+.btn-predict:hover{ transform:translateY(-2px); box-shadow:0 14px 40px rgba(41,217,140,.45); color:#03140c; }
+.btn-predict:active{ transform:translateY(0); }
+.btn-predict .ripple{ position:absolute; border-radius:50%; background:rgba(255,255,255,.5); transform:scale(0); animation:rippleAnim .6s linear; pointer-events:none; }
+@keyframes rippleAnim{ to{ transform:scale(3); opacity:0; } }
+.btn-predict.loading .btn-text{ opacity:0; }
+.btn-predict .spinner-ring{ position:absolute; width:20px; height:20px; border-radius:50%; border:2.5px solid rgba(4,20,12,.25); border-top-color:#03140c; opacity:0; animation:spin .8s linear infinite; }
+.btn-predict.loading .spinner-ring{ opacity:1; }
+@keyframes spin{ to{ transform:rotate(360deg); } }
+
+.about-link{
+  display:inline-flex; align-items:center; gap:6px; margin-top:18px; color:var(--mist); text-decoration:none;
+  font-size:.86rem; font-family:var(--font-mono); transition:.25s;
+}
+.about-link:hover{ color:var(--emerald); gap:9px; }
+
+footer{ padding:20px 0; border-top:1px solid var(--glass-border); }
+footer .fnote{ text-align:center; color:var(--mist-dim); font-size:.76rem; font-family:var(--font-mono); }
+
+@media (max-width:991px){
+  .hero-copy{ padding-right:0; margin-bottom:36px; text-align:center; }
+  .hero-copy p.lead-sub{ margin-left:auto; margin-right:auto; }
+  .stat-row, .chip-row{ justify-content:center; }
+}
+</style>
+</head>
+<body>
+
+<div id="particles"></div>
+<div class="blob blob-1"></div>
+<div class="blob blob-2"></div>
+<div class="blob blob-3"></div>
+
+<div class="wrap topbar d-flex justify-content-between align-items-center">
+  <div class="brand"><div class="logo-ring"><i class="bi bi-recycle"></i></div> BioLoop<span class="dot">.AI</span></div>
+  <a href="#about" class="nav-link-ghost"><i class="bi bi-info-circle"></i> About Project</a>
+</div>
+
+<main>
+  <div class="wrap">
+    <div class="row align-items-center g-5">
+
+      <!-- LEFT: COPY -->
+      <div class="col-lg-6">
+        <div class="hero-copy" data-aos="fade-right">
+          <div class="eyebrow">WASTE TO WEALTH · AI PREDICTION ENGINE</div>
+          <h1>Turn organic waste into <span class="grad">clean energy &amp; revenue</span></h1>
+          <p class="lead-sub">BioLoop AI estimates Compressed Biogas yield, bio-slurry output, revenue and environmental impact from your waste stream — powered by a trained RandomForest model aligned with GAIL's SATAT scheme.</p>
+
+          <div class="stat-row">
+            <div class="stat"><div class="num">36</div><div class="lbl">TN Districts Covered</div></div>
+            <div class="stat"><div class="num">8</div><div class="lbl">Waste Categories</div></div>
+            <div class="stat"><div class="num">&lt;2s</div><div class="lbl">Prediction Time</div></div>
+          </div>
+
+          <div class="chip-row">
+            <span class="mini-chip"><i class="bi bi-cpu"></i> RandomForest Model</span>
+            <span class="mini-chip"><i class="bi bi-patch-check"></i> SATAT Aligned</span>
+            <span class="mini-chip"><i class="bi bi-globe-asia-australia"></i> Tamil Nadu Focused</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- RIGHT: FORM -->
+      <div class="col-lg-6">
+        <div class="form-card" data-aos="fade-left">
+          <div class="form-head">
+            <div class="ic"><i class="bi bi-robot"></i></div>
+            <div>
+              <h5>Run a Prediction</h5>
+              <div class="sub">Fill in your waste details to get started</div>
+            </div>
+          </div>
+
+          <form id="predictForm" action="/predict" method="POST">
+
+            <div class="mb-field">
+              <label class="field-label" for="waste_type"><i class="bi bi-trash3"></i> Waste Type</label>
+              <select class="form-select" id="waste_type" name="waste_type" required>
+                <option value="Food Waste" selected>Food Waste</option>
+                <option value="Vegetable Market Waste">Vegetable Market Waste</option>
+                <option value="Fruit Waste">Fruit Waste</option>
+                <option value="Poultry Waste">Poultry Waste</option>
+                <option value="Dairy Waste">Dairy Waste</option>
+                <option value="Slaughterhouse Waste">Slaughterhouse Waste</option>
+                <option value="Agricultural Residue">Agricultural Residue</option>
+                <option value="Municipal Solid Waste">Municipal Solid Waste (Wet Fraction)</option>
+              </select>
+            </div>
+
+            <div class="mb-field">
+              <label class="field-label" for="quantity"><i class="bi bi-speedometer2"></i> Quantity (kg)</label>
+              <input type="number" class="form-control" id="quantity" name="quantity" placeholder="e.g. 988" min="1" step="0.1" required>
+            </div>
+
+            <div class="mb-field">
+              <label class="field-label" for="location"><i class="bi bi-geo-alt"></i> Location (Tamil Nadu District / Municipality)</label>
+              <select class="form-select" id="location" name="location" required>
+                <option value="Chennai" selected>Chennai</option>
+                <option value="Coimbatore">Coimbatore</option>
+                <option value="Madurai">Madurai</option>
+                <option value="Tiruchirappalli">Tiruchirappalli (Trichy)</option>
+                <option value="Salem">Salem</option>
+                <option value="Tirunelveli">Tirunelveli</option>
+                <option value="Tiruppur">Tiruppur</option>
+                <option value="Erode">Erode</option>
+                <option value="Vellore">Vellore</option>
+                <option value="Thoothukudi">Thoothukudi (Tuticorin)</option>
+                <option value="Dindigul">Dindigul</option>
+                <option value="Thanjavur">Thanjavur</option>
+                <option value="Ranipet">Ranipet</option>
+                <option value="Sivakasi">Sivakasi</option>
+                <option value="Karur">Karur</option>
+                <option value="Udhagamandalam">Udhagamandalam (Ooty)</option>
+                <option value="Hosur">Hosur</option>
+                <option value="Nagercoil">Nagercoil</option>
+                <option value="Kanchipuram">Kanchipuram</option>
+                <option value="Kumbakonam">Kumbakonam</option>
+                <option value="Cuddalore">Cuddalore</option>
+                <option value="Chengalpattu">Chengalpattu</option>
+                <option value="Namakkal">Namakkal</option>
+                <option value="Karaikudi">Karaikudi</option>
+                <option value="Pollachi">Pollachi</option>
+                <option value="Rajapalayam">Rajapalayam</option>
+                <option value="Pudukkottai">Pudukkottai</option>
+                <option value="Virudhunagar">Virudhunagar</option>
+                <option value="Krishnagiri">Krishnagiri</option>
+                <option value="Dharmapuri">Dharmapuri</option>
+                <option value="Ariyalur">Ariyalur</option>
+                <option value="Perambalur">Perambalur</option>
+                <option value="Nagapattinam">Nagapattinam</option>
+                <option value="Tiruvannamalai">Tiruvannamalai</option>
+                <option value="Villupuram">Villupuram</option>
+                <option value="Theni">Theni</option>
+                <option value="Ramanathapuram">Ramanathapuram</option>
+              </select>
+            </div>
+
+            <button type="submit" class="btn-predict" id="predictBtn">
+              <span class="btn-text"><i class="bi bi-lightning-charge-fill"></i> Predict</span>
+              <span class="spinner-ring"></span>
+            </button>
+          </form>
+
+          <a href="#about" class="about-link"><i class="bi bi-arrow-right-short"></i> About Project</a>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</main>
+
+<footer>
+  <div class="wrap fnote">BioLoop AI — Waste to Wealth Prediction System · Inter-Department Project Expo 2026</div>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" defer></script>
+<script src="https://unpkg.com/aos@2.3.1/dist/aos.js" defer></script>
+<script>
+document.addEventListener('DOMContentLoaded', function(){
+  if(window.AOS){ AOS.init({ duration: 700, once: true, easing: 'ease-out-cubic' }); }
+
+  /* ambient rising particles */
+  const field = document.getElementById('particles');
+  const count = window.innerWidth < 768 ? 16 : 30;
+  for(let i=0;i<count;i++){
+    const s = document.createElement('span');
+    s.style.left = Math.random()*100 + 'vw';
+    s.style.bottom = -10 + 'px';
+    s.style.animationDuration = (8 + Math.random()*10) + 's';
+    s.style.animationDelay = (Math.random()*10) + 's';
+    s.style.opacity = (0.2 + Math.random()*0.5);
+    field.appendChild(s);
+  }
+
+  /* ripple on predict button */
+  const btn = document.getElementById('predictBtn');
+  btn.addEventListener('click', function(e){
+    const circle = document.createElement('span');
+    const d = Math.max(btn.clientWidth, btn.clientHeight);
+    circle.style.width = circle.style.height = d + 'px';
+    circle.style.left = (e.clientX - btn.getBoundingClientRect().left - d/2) + 'px';
+    circle.style.top = (e.clientY - btn.getBoundingClientRect().top - d/2) + 'px';
+    circle.classList.add('ripple');
+    btn.appendChild(circle);
+    setTimeout(()=>circle.remove(), 650);
+  });
+
+  /* loading state on submit — form still posts normally to Flask */
+  document.getElementById('predictForm').addEventListener('submit', function(){
+    btn.classList.add('loading');
+    btn.disabled = true;
+  });
+});
+</script>
+</body>
+</html>
